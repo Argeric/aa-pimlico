@@ -5,6 +5,7 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
+    "build": "npx tsc -b .",
     "start": "tsx index.ts"
   },
   "author": "",

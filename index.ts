@@ -20,3 +20,30 @@ import {
 import { encodeFunctionData, parseAbiItem } from "viem"
 
 console.log("Hello world!")
+
+const usdc = "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+
+const privateKey =
+	(process.env.PRIVATE_KEY as Hex) ??
+	(() => {
+		const pk = generatePrivateKey()
+		writeFileSync(".env", `PRIVATE_KEY=${pk}`)
+		return pk
+	})()
+
+const publicClient = createPublicClient({
+	chain: baseSepolia,
+	transport: http("https://sepolia.base.org"),
+})
+
+const apiKey = process.env.PIMLICO_API_KEY
+const pimlicoUrl = `https://api.pimlico.io/v2/${baseSepolia.id}/rpc?apikey=${apiKey}`
+
+const pimlicoClient = createPimlicoClient({
+	chain: baseSepolia,
+	transport: http(pimlicoUrl),
+	entryPoint: {
+		address: entryPoint07Address,
+		version: "0.7" as EntryPointVersion,
+	},
+})
