@@ -5,6 +5,12 @@ import { createSmartAccountClient } from 'permissionless'
 import { toSafeSmartAccount } from 'permissionless/accounts'
 import 'dotenv/config'
 
+// "dependencies": {
+//     "dotenv": "^16.3.1",
+//         "permissionless": "^0.2.0",
+//         "viem": "^2.20.0"
+// },
+
 import fs from 'fs'
 import path from 'path'
 

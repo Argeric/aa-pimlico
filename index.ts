@@ -1,3 +1,4 @@
+/*
 import "dotenv/config"
 import { writeFileSync } from "fs"
 import { toSafeSmartAccount } from "permissionless/accounts"
@@ -46,4 +47,4 @@ const pimlicoClient = createPimlicoClient({
 		address: entryPoint07Address,
 		version: "0.7" as EntryPointVersion,
 	},
-})
+})*/
