@@ -1,8 +1,9 @@
-import { createPublicClient, http, parseEther, Hex, getAddress, encodeFunctionData } from 'viem'
+import { createPublicClient, http, parseEther, Hex, getAddress, encodeFunctionData, Chain } from 'viem'
 import { generatePrivateKey, privateKeyToAccount, } from 'viem/accounts'
 import { createPimlicoClient } from 'permissionless/clients/pimlico'
 import { createSmartAccountClient } from 'permissionless'
 import { toSafeSmartAccount } from 'permissionless/accounts'
+import { baseSepolia } from "viem/chains";
 import 'dotenv/config'
 
 // "dependencies": {
