@@ -7,7 +7,11 @@ import { sepolia } from "viem/chains"
 import { createPimlicoClient } from "permissionless/clients/pimlico"
 import {  createBundlerClient, entryPoint07Address } from "viem/account-abstraction"
 import { createSmartAccountClient } from "permissionless"
-
+// "dependencies": {
+//     "dotenv": "^16.3.1",
+//         "permissionless": "^0.2.0",
+//         "viem": "^2.20.0"
+// },
 const apiKey = process.env.PIMLICO_API_KEY
 if (!apiKey) throw new Error("Missing PIMLICO_API_KEY")
 
