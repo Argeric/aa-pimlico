@@ -1,30 +1,27 @@
 import "dotenv/config"
-import { writeFileSync } from "fs"
 import { createSmartAccountClient } from "permissionless"
 import { toSafeSmartAccount } from "permissionless/accounts"
 import { createPimlicoClient } from "permissionless/clients/pimlico"
 import { Hex, createPublicClient, encodeFunctionData, http, parseAbiItem } from "viem"
 import { entryPoint07Address } from "viem/account-abstraction"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
 
-const erc20PaymasterAddress = "0x000000000041F3aFe8892B48D88b6862efe0ec8d" as const
-const usdcAddress = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
+const apiKey = process.env.PIMLICO_API_KEY
+if (!apiKey) throw new Error("Missing PIMLICO_API_KEY")
 
-const privateKey =
-    (process.env.PRIVATE_KEY as Hex) ??
-    (() => {
-        const pk = generatePrivateKey()
-        writeFileSync(".env", `PRIVATE_KEY=${pk}`)
-        return pk
-    })()
+const privateKey = process.env.PRIVATE_KEY as Hex | undefined
+if (!privateKey) throw new Error("Missing PRIVATE_KEY")
+
+const erc20PaymasterAddress = "0x000000000041F3aFe8892B48D88b6862efe0ec8d" as const
+
+const usdcAddress = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238" as const
 
 const publicClient = createPublicClient({
     chain: sepolia,
     transport: http("https://rpc.sepolia.ethpandaops.io"),
 })
 
-const apiKey = process.env.PIMLICO_API_KEY // REPLACE THIS
 const pimlicoUrl = `https://api.pimlico.io/v2/sepolia/rpc?apikey=${apiKey}`
 
 const pimlicoClient = createPimlicoClient({
@@ -35,10 +32,18 @@ const pimlicoClient = createPimlicoClient({
     },
 })
 
+const owner = privateKeyToAccount(privateKey)
+
 const account = await toSafeSmartAccount( {
     client: publicClient,
-    owners: [privateKeyToAccount(privateKey)],
+    owners: [owner],
+    entryPoint: {
+        address: entryPoint07Address,
+        version: "0.7",
+    },
     version: "1.4.1",
+
+    // 首次部署 Safe 时，顺手授权 ERC20 Paymaster 可花 USDC
     setupTransactions: [
         {
             to: usdcAddress,
@@ -63,9 +68,11 @@ const senderUsdcBalance = await publicClient.readContract({
     args: [account.address],
 })
 
+console.log(`USDC balance: ${senderUsdcBalance}`)
+
 if (senderUsdcBalance < 1_000_000n) {
     throw new Error(
-        `insufficient USDC balance for counterfactual wallet address ${account.address}: ${
+        `Insufficient USDC balance for counterfactual wallet address ${account.address}: ${
             Number(senderUsdcBalance) / 1000000
         } USDC, required at least 1 USDC. Load up balance at https://faucet.circle.com/`,
     )
@@ -79,12 +86,30 @@ const smartAccountClient = createSmartAccountClient({
     chain: sepolia,
     bundlerTransport: http(pimlicoUrl),
     paymaster: {
-        async getPaymasterData(parameters) {
-            return await pimlicoClient.getPaymasterData(parameters)
-        },
         async getPaymasterStubData(parameters) {
-            return await pimlicoClient.getPaymasterStubData(parameters)
-        }
+            // 先拿 stub data 给 gas estimation 使用
+            return await pimlicoClient.getPaymasterStubData({
+                ...parameters,
+                // 关键：指定 ERC20 paymaster
+                paymaster: erc20PaymasterAddress,
+                // 关键：传 ERC20 paymaster context
+                context: {
+                    token: usdcAddress,
+                },
+            } as any)
+        },
+        async getPaymasterData(parameters) {
+            // 真正拿可用的 paymasterData
+            return await pimlicoClient.getPaymasterData({
+                ...parameters,
+                // 关键：指定 ERC20 paymaster
+                paymaster: erc20PaymasterAddress,
+                // 关键：传 ERC20 paymaster context
+                context: {
+                    token: usdcAddress,
+                },
+            } as any)
+        },
     },
     userOperation: {
         estimateFeesPerGas: async () => {
@@ -95,8 +120,8 @@ const smartAccountClient = createSmartAccountClient({
 
 const txHash = await smartAccountClient.sendTransaction({
     to: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-    value: 0n,
-    data: "0x1234",
+    value: 1n,
+    // data: "0x1234",
 })
 
 console.log(`User operation included: https://sepolia.etherscan.io/tx/${txHash}`)
