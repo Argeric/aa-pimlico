@@ -80,28 +80,10 @@ const smartAccountClient = createSmartAccountClient({
     bundlerTransport: http(pimlicoUrl),
     paymaster: {
         async getPaymasterData(parameters) {
-            const gasEstimates = await pimlicoClient.estimateUserOperationGas({
-                ...parameters,
-                paymaster: erc20PaymasterAddress,
-            })
-            return {
-                paymaster: erc20PaymasterAddress,
-                paymasterData: "0x" as Hex,
-                paymasterPostOpGasLimit: gasEstimates.paymasterPostOpGasLimit ?? 0n,
-                paymasterVerificationGasLimit: gasEstimates.paymasterVerificationGasLimit ?? 0n,
-            }
+            return await pimlicoClient.getPaymasterData(parameters)
         },
         async getPaymasterStubData(parameters) {
-            const gasEstimates = await pimlicoClient.estimateUserOperationGas({
-                ...parameters,
-                paymaster: erc20PaymasterAddress
-            })
-            return {
-                paymaster: erc20PaymasterAddress,
-                paymasterData: "0x" as Hex,
-                paymasterPostOpGasLimit: gasEstimates.paymasterPostOpGasLimit ?? 0n,
-                paymasterVerificationGasLimit: gasEstimates.paymasterVerificationGasLimit ?? 0n
-            }
+            return await pimlicoClient.getPaymasterStubData(parameters)
         }
     },
     userOperation: {
