@@ -7,6 +7,11 @@ import { entryPoint07Address } from "viem/account-abstraction"
 import { privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
 
+/*
+* 这个例子不能使用erc20PaymasterAddress，而是使用pimlico默认的paymaster，导致在postOp阶段revert
+*
+* */
+
 const apiKey = process.env.PIMLICO_API_KEY
 if (!apiKey) throw new Error("Missing PIMLICO_API_KEY")
 
