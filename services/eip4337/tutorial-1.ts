@@ -70,7 +70,7 @@ const pimlicoClient = createPimlicoClient({
 
     })
 
-    console.log(`User operation with single transaction included: https://sepolia.etherscan.io/tx/${txHash}`)
+    console.log(`User operation ===1=== with single transaction included: https://sepolia.etherscan.io/tx/${txHash}`)
 
     const contract = getContract({
         address: "0x6D7A849791a8E869892f11E01c2A5f3b25a497B6",
@@ -83,14 +83,14 @@ const pimlicoClient = createPimlicoClient({
 
     const txHash2 = await contract.write.greet()
 
-    console.log(`User operation with contract call included: https://sepolia.etherscan.io/tx/${txHash2}`)
+    console.log(`User operation ===2=== with contract call included: https://sepolia.etherscan.io/tx/${txHash2}`)
 
     const txHashMultiple = await smartAccountClient.sendTransaction({
         calls: [
             {
                 to: "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
-                value: 0n,
-                data: "0x1234",
+                value: 1n,
+                // data: "0x1234",
             },
             {
                 abi: [{"inputs":[],"name":"getLastGreeter","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"greet","outputs":[],"stateMutability":"nonpayable","type":"function"}],
@@ -101,7 +101,7 @@ const pimlicoClient = createPimlicoClient({
         ],
     })
 
-    console.log(`User operation with multiple transactions included: https://sepolia.etherscan.io/tx/${txHashMultiple}`)
+    console.log(`User operation ===3=== with multiple transactions included: https://sepolia.etherscan.io/tx/${txHashMultiple}`)
 }
 
 {
@@ -129,14 +129,14 @@ const pimlicoClient = createPimlicoClient({
         hash: userOpHash,
     })
 
-    console.log(`User operation included: https://sepolia.etherscan.io/tx/${receipt.receipt.transactionHash}`)
+    console.log(`User operation ===4=== included: https://sepolia.etherscan.io/tx/${receipt.receipt.transactionHash}`)
 
     const txHashMultiple = await bundlerClient.sendUserOperation({
         calls: [
             {
                 to: "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
-                value: 0n,
-                data: "0x1234",
+                value: 1n,
+                // data: "0x1234",
             },
             {
                 to: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
@@ -145,10 +145,20 @@ const pimlicoClient = createPimlicoClient({
             }
         ],
     })
+    console.log(`User operation ===5=== `, {txHashMultiple})
 
-    const receipt2 = await bundlerClient.getUserOperationReceipt({
-        hash: txHashMultiple,
-    })
+    let retry = 0;
+    while (true){
+        try {
+            retry++;
+            console.log(`User operation ===6=== `, {txHashMultiple, retry})
+            const receipt2 = await bundlerClient.getUserOperationReceipt({
+                hash: txHashMultiple,
+            })
+            console.log(`User operation ===7=== included: https://sepolia.etherscan.io/tx/${receipt2.receipt.transactionHash}`)
+            break;
+        } catch (e) {
 
-    console.log(`User operation included: https://sepolia.etherscan.io/tx/${receipt2.receipt.transactionHash}`)
+        }
+    }
 }
